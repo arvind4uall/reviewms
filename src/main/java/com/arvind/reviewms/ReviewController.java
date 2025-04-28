@@ -53,4 +53,9 @@ public class ReviewController {
             return new ResponseEntity<>("Review deleted successfully",HttpStatus.OK);
         return new ResponseEntity<>("Review doesn't present !!!",HttpStatus.NOT_FOUND);
     }
+    @GetMapping("/averageRating")
+    private Double getAverageRating(@RequestParam("companyId") Long companyId){
+        List<Review> getAllReviews = reviewServiceImpl.getReviews(companyId);
+        return getAllReviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
+    }
 }
