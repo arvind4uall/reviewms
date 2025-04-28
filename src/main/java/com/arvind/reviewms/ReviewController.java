@@ -1,6 +1,7 @@
 package com.arvind.reviewms;
 
 import com.arvind.reviewms.impl.ReviewServiceImpl;
+import com.arvind.reviewms.messaging.ReviewMessageProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,8 @@ import java.util.Optional;
 public class ReviewController {
     @Autowired
     private ReviewServiceImpl reviewServiceImpl;
+    @Autowired
+    private ReviewMessageProducer reviewMessageProducer;
     @GetMapping
     private ResponseEntity<List<Review>> getReviews(@RequestParam Long companyId){
         List<Review> reviews = reviewServiceImpl.getReviews(companyId);
@@ -22,8 +25,11 @@ public class ReviewController {
     @PostMapping
     private ResponseEntity<String> createReview(@RequestParam Long companyId,@RequestBody Review review){
         boolean isCreated = reviewServiceImpl.createReview(companyId,review);
-        if(isCreated)
+        if(isCreated){
+            reviewMessageProducer.sendMessage(review);
             return new ResponseEntity<>("Review created successfully!!!",HttpStatus.CREATED);
+        }
+
         return new ResponseEntity<>("Error occured while creating reivew!!",HttpStatus.INTERNAL_SERVER_ERROR);
     }
     @GetMapping("/{reviewId}")
